@@ -410,7 +410,10 @@ clean_units <- list(
 # Filter data frame and order groups
 df_filtered <- df_expanded %>%
   filter(Group %in% c("non_covid", "non_severe", "severe")) %>%
-  mutate(Group = factor(Group, levels = c("non_covid", "non_severe", "severe")))
+  mutate(
+    Group = factor(Group, levels = c("non_covid", "non_severe", "severe")),
+    `CRP_i,_mg/L` = as.numeric(gsub("[^0-9.]", "", as.character(`CRP_i,_mg/L`)))
+  )
 
 # Create plots list
 plot_list <- list()

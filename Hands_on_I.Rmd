@@ -270,9 +270,9 @@ kbl(final_table, caption = "Table 1. Demographics and Baseline Characteristics o
 ```
 > **Discussion**
 
-> When producing the table, the first thing to notice was that most of the statistics related to dates appeared clearly different than in the manuscript's Table 1. However, this was solved by adding 1 when computing the corresponding time differences. This 1 was probably added by the authors because this difference for one of the patients resulted in -1. Another possible reason would be that they considered that all patients who had the same date for Onset and Admission or Admission and Severe had spent 1 day there and not 0.
+> When producing the table, the first thing we noticed was that most of the statistics related to dates appeared clearly different than in the manuscript's Table 1. However, this was solved by adding 1 when computing the corresponding time differences. This +1 was probably added by the authors because when first calculating the time differences, one of the patients resulted in a -1 value. Another possible reason would be that they considered that all patients who had the same date for Onset and Admission or Admission and Severe had spent 1 day there and not 0.
 
-> Next, the most noticable discrepancy appears in the number of Male/Female in the groups Total COVID-19 and COVID-19 Non-severe, where there was a swap of 2 patients. The paper listed them as Male while the data lists them as Female. 
+> Next, the most noticeable discrepancy appears in the number of Male/Female in the groups Total COVID-19 and COVID-19 Non-severe, where there was a swap of 2 patients. The paper listed them as Male while the data lists them as Female. 
 > Appart from this obvious difference, some other statistics differ by a few decimals, or even by a few units in some cases.
 
 > These discrepancies appear to have no explanation, as the values obtained in our table are the ones that the supplementary data provides. However, there could be several possible reasons. 
@@ -432,7 +432,7 @@ To end up, the correlation matrix shows a very high positive correlation between
 ## Exercise 2.1
 Reproduce Supplementary Figure 1 using the data without modifying or removing any observations. Use the same variables and groupings as in the original figure. 
 
-> In this part, we just produced the boxplots for the 12 metabolomics variables without modifying any data nor trying the obtain nicer plots. For these reason, most of the plots appear badly, not interpretable, which was handled later in exercise 2.2.
+> In this part, we just produced the boxplots for the 12 metabolomics variables without modifying any data nor trying the obtain nicer plots. For this reason, most of the plots appear ugly and not interpretable. This was handled later in exercise 2.2.
 
 ```{r fig.width=12, fig.height=14}
 # Define indexes and names
@@ -473,7 +473,10 @@ clean_units <- list(
 # Filter data frame and order groups
 df_filtered <- df_expanded %>%
   filter(Group %in% c("non_covid", "non_severe", "severe")) %>%
-  mutate(Group = factor(Group, levels = c("non_covid", "non_severe", "severe")))
+  mutate(
+    Group = factor(Group, levels = c("non_covid", "non_severe", "severe")),
+    `CRP_i,_mg/L` = as.numeric(gsub("[^0-9.]", "", as.character(`CRP_i,_mg/L`)))
+  )
 
 # Create plots list
 plot_list <- list()
@@ -484,12 +487,12 @@ for (i in seq_along(target_cols_plots)) {
   colname <- colnames(df_expanded)[col_idx]
   
   my_title <- clean_titles[i]
-  my_unit  <- clean_units[[i]]
-  
+  my_unit <- clean_units[[i]]
   p <- ggplot(df_filtered, aes(x = Group, y = .data[[colname]], fill = Group)) +
     geom_boxplot(outlier.shape = NA, alpha = 0.7) + 
     geom_jitter(width = 0.2, alpha = 0.4, size = 1) +
     theme_minimal() +
+    scale_y_continuous() +
     labs(
       title = my_title,
       x = NULL,
@@ -745,12 +748,12 @@ wrap_plots(plot_list, ncol = 3, nrow = 4) +
 
 > **Discussion**
 
-> Two different strategies were used: clipping and log-transforming. Method 1 just consisted of zooming in by hiding the most extreme values (top 5% outliers) and plotting only the rest of the values. The second method, was based on the same, but restrincting the plots to only the statistical whiskers, therefore completely removing the outliers. Next, the third method consisted on a log-transformation, which allowed to see the axis in a different scale, better for the visualization. Finally the fourth method combined both the log-transformation and the clipping, hiding the top 2% outliers.
+> Two different strategies were used: clipping and log-transforming. Method 1 just consisted of zooming in by hiding the most extreme values (top 5% outliers) and plotting only the rest of the values. The second method was based on the same, but restrincting the plots to only the statistical whiskers, therefore completely removing the statistical outliers. Next, the third method consisted on a log-transformation, which allowed to see the axis in a different scale, better for the visualization. Finally the fourth method combined both the log-transformation and the clipping, hiding the top 2% outliers.
 We considered all these methods to be better than the way of cutting the axis used in the paper, which resulted in a difficult way to interpret the plots.
 
 > Considering only the visualization aspect, Method 2 (completely removing outliers), resulted in the best one, as the interpretability aspect of the boxplots was better. However, this method resulted in missing so many values which were real measurements. If we were calculating statistics, maybe removing these outliers could be a good option, but in this case, the plots are hiding real values. 
 On the other hand, the log-transformation allowed to keep all the real values in the plots, but resulted in some plots not being readable. 
-For this reason, by considering this nice visualization / not missing values trade-off, we finally used Method 4, combining both the log-transformatioin and the hiding of the most extreme values. In this case, the logarithmic scale of the axis resulted in the possibility of hiding only the top 2% outliers and not the 5% or all of them, while also maintaining the plots visible. 
+<!-- For this reason, considering this nice visualization / not missing values trade-off, we finally used Method 4, combining both the log-transformatioin and the hiding of the most extreme values. In this case, the logarithmic scale of the axis resulted in the possibility of hiding only the top 2% outliers and not the 5% or all of them, while also maintaining the plots readable  -->
 
 > Other methods such as capping, or modifying in any way the values of the outliers were not considered, because it would mean showing in the plots values which were not real. 
 
